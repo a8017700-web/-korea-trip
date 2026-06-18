@@ -58,7 +58,8 @@
         ];
 
         const DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
-        const DEFAULT_EXCHANGE_RATE = 0.024; /* 預設匯率 */
+        // 修改：預設匯率改為 1 台幣換幾韓元 (約 41.67)
+        const DEFAULT_EXCHANGE_RATE = 41.67; 
         const STORAGE_KEY = 'offline_travel_records';
         const RATE_STORAGE_KEY = 'custom_exchange_rate'; // 新增：儲存匯率的 key
 
@@ -223,9 +224,8 @@
               setShowRateSettings(true);
           };
 
-          // 計算金額 (改用動態的 exchangeRate)
-          // const totalTWD = records.reduce((sum, record) => sum + record.amountTWD, 0); // 舊寫法
-          const totalTWD = records.reduce((sum, record) => sum + Math.round(record.amountLocal * exchangeRate), 0);
+          // 修改：計算金額邏輯改為除以匯率 (當地金額 / 匯率 = 台幣)
+          const totalTWD = records.reduce((sum, record) => sum + Math.round(record.amountLocal / exchangeRate), 0);
           
           const currentDayRecords = records.filter(record => record.day === selectedDay);
           const currentDayTotalLocal = currentDayRecords.reduce((sum, record) => sum + record.amountLocal, 0);
@@ -239,14 +239,15 @@
                   <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl transform transition-all">
                     <h3 className="text-xl font-black mb-4 text-slate-800 text-center">設定自訂匯率</h3>
                     <div className="mb-4">
-                        <label className="block text-sm font-bold text-slate-600 mb-2">1 韓元 (KRW) 等於多少台幣 (TWD)？</label>
+                        {/* 修改：設定文字提示與 placeholder */}
+                        <label className="block text-sm font-bold text-slate-600 mb-2">1 台幣 (TWD) 等於多少韓元 (KRW)？</label>
                         <input 
                             type="number" 
-                            step="0.0001"
+                            step="0.01"
                             value={tempRateInput} 
                             onChange={(e) => setTempRateInput(e.target.value)} 
                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold"
-                            placeholder="例如: 0.024"
+                            placeholder="例如: 41.5"
                         />
                     </div>
                     <div className="flex gap-3">
@@ -316,8 +317,8 @@
                       <div className="text-right">
                         <div className="text-sm font-semibold text-slate-400 mb-1">韓元 (KRW)</div>
                         <div className="text-5xl font-black tracking-tight text-slate-800 mb-2 truncate">{parseInt(amount).toLocaleString()}</div>
-                        {/* 修改：使用動態匯率 */}
-                        <div className="text-md text-blue-600 font-bold mb-4">≈ NT$ {Math.round(parseInt(amount) * exchangeRate).toLocaleString()}</div>
+                        {/* 修改：輸入面板上的動態匯率計算 (除法) */}
+                        <div className="text-md text-blue-600 font-bold mb-4">≈ NT$ {Math.round(parseInt(amount) / exchangeRate).toLocaleString()}</div>
                       </div>
                       <div className="border-t pt-3">
                         {inputStep === 1 ? (
@@ -427,8 +428,8 @@
                                 </div>
                                 <div className="text-right">
                                   <div className="font-bold text-slate-800">₩{record.amountLocal.toLocaleString()}</div>
-                                  {/* 修改：使用動態匯率計算明細的台幣 */}
-                                  <div className="text-xs text-slate-400">NT$ {Math.round(record.amountLocal * exchangeRate).toLocaleString()}</div>
+                                  {/* 修改：明細列表上的動態匯率計算 (除法) */}
+                                  <div className="text-xs text-slate-400">NT$ {Math.round(record.amountLocal / exchangeRate).toLocaleString()}</div>
                                 </div>
                                 <button onClick={() => deleteRecord(record.id)} className="ml-2 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors">
                                   <IconTrash size={18} />
